@@ -1,0 +1,177 @@
+Pasii urmati pt subpunctul a) de la tema de laborator (terminat in 2 zile de lucru, cu mai multe sau mai putine ore in care am lucrat - pt ca am scris in paralel in codeblocks in C++ programul pt a intelege cum se indexeaza si ce trebuie facut):
+1. de inteles cum functioneaza matricele in assembly + exercitiul de la finalul suportului de laborator 0x01
+2. m-am luptat cu cititul de la tastatura si am inteles conceptul conform caruia functiile printf si scanf modifica registri intr-un mod neinteles omului de rand, therefore pt siguranta: fie dau pushl reg, popl reg (acelasi registru - in order for it to be able to restore its initial value), fie pusha, popa si am incheiat discutia
+3. milestone: am citit m, n, p, perechile (i,j) si k de tastatura si am afisat matricea matrix exact cum e ea salvata in memorie incepand cu adresa lui %edi
+4. m-am ocupat de a-mi lamuri 2 intrebari referitor la cum se procedeaza: sa bordez matricea initiala matrix cu 4 for-uri (cum se facea la bac s3 ex2) sau sa o am direct bordata, iar cand afisez matricea initiala (pt ca asta se cere), sa afisez pt i<-1,m-1 si j<-1,n-1
+5. varianta a doua e rezonabila asa ca matrix teoretic e bordata de la inceput, numai ca eu atribui valorile de 1 (e muchie intr-un graf orientat) pt un element de forma matrix[i+1][j+1], unde (i,j) pereche
+6. am reusit sa afisez matricea extinsa + cea initiala in aceasta ordine, din moment ce pt cea initiala trebuie sa se revina la valorile initiale ale nr de linii, respectiv coloane (remembering that i've incremented n and m by 2 when dealing with the graph, now i've got to "fuck, go back", pt ca matricea initiala are m_init linii si n_init coloane)
+7. tin minte pentru restul proiectului ca acum m si n au valorile lor initiale, therefore, mereu cand afisez fac succesiv operatiile de add $2, n / sub $2, n pt accesa ca o pers normala elementele din matricea extinsa matrix (pana in ac punct ea mereu a fost extinsa si va ramane extinsa)
+8. ma ocup de realizat eticheta afis_suma_vecini_elem_curent si iese un intreg plan de bataie in care apelez corect vecinii bazat pe lineIndex si columnIndex din matricea extinsa matrix, tot ce a trebuit sa retin e ca i = lineIndex + 1, iar j = columnIndex + 1 (deci i - 1 = lineIndex, i + 1 = lineIndex + 2, similar pt j)
+9. upgrade de la eticheta afis_suma_vecini_elem_curent la compunere_matrice_s si afis_matrice_s, pt ca dorim ulterior sa putem apela suma vecinilor corespunzatoare elementului curent din matricea neextinsa
+10. prima_evolutie implica definirea conceptelor de baza din conway's game of life - cand modifici elementul curent din 0 si 1 si invers + corespondenta matrix si matrixs (realizez ca pt a apela din ambele matrice, folosesc acelasi eax = (lineIndex+1)*(n_init+2)+(columnIndex+1), fapt convenient, insa nu stiu sigur daca matrixs ar fi si ea supradimensionata, adica extinsa in mod implicit, oricum e declarata tot de un space 1600 si nu ar trebui sa fie o problema)
+11. multe corectari de jmp la etichete
+12. afis_k_evolutii va afisa fiecare evolutie de la pasul curent pana cand indexul kIndex==k, deci a trebuit sa modific niste ciclari (compunere_matrice_s -> afis_matrice_s -> analiza_evolutie -> afis_analiza_evolutie -> !!!!cont_afis_k_evolutii!!!!)
+13. ma bucur de viata si decid ca vreau sa o complic cu niste prompt-uri obraznice de genul asta: "Iteratia <kIndex>" etc.
+
+THE C++ CODE SNIPPET THAT GOT ME THROUGH ALL HARDSHIPS #selfmade:
+#include <iostream>
+
+using namespace std;
+
+int main()
+{
+    int s, x, y, n, m, p, k, a[100][100], matrixs[100][100];
+    cout<<"m="; cin>>m;
+    cout<<"n="; cin>>n;
+    cout<<"p="; cin>>p;
+    for(int pIndex=0; pIndex<p; pIndex++)
+    {
+        cin>>x>>y;
+        for(int i=0; i<m+2; i++)
+        {
+            for(int j=0; j<n+2; j++)
+            {
+                a[x+1][y+1] = 1;
+            }
+        }
+    }
+    cout<<"k="; cin>>k;
+    cout<<endl;
+    for(int lineIndex=0; lineIndex<m+2; lineIndex++)
+    {
+        for(int columnIndex=0; columnIndex<n+2; columnIndex++)
+        {
+            cout<<a[lineIndex][columnIndex]<<" ";
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+    for(int lineIndex=0; lineIndex<m; lineIndex++)
+    {
+        for(int columnIndex=0; columnIndex<n; columnIndex++)
+        {
+            cout<<a[lineIndex+1][columnIndex+1]<<" ";
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+    /*for(int lineIndex=0; lineIndex<m; lineIndex++)
+    {
+        for(int columnIndex=0; columnIndex<n; columnIndex++)
+        {
+            s = 0;
+            //s = a[i-1][j-1] + a[i-1][j] + a[i-1][j+1] + a[i][j-1] + a[i][j+1]+ a[i+1][j-1] + a[i+1][j] + a[i+1][j+1]
+            s = a[lineIndex][columnIndex] +
+            a[lineIndex][columnIndex+1] +
+            a[lineIndex][columnIndex+2] +
+            a[lineIndex+1][columnIndex] +
+            a[lineIndex+1][columnIndex+2]+
+            a[lineIndex+2][columnIndex] +
+            a[lineIndex+2][columnIndex+1] +
+            a[lineIndex+2][columnIndex+2];
+            matrixs[lineIndex+1][columnIndex+1]=s;
+        }
+    }
+    for(int lineIndex=0; lineIndex<m; lineIndex++)
+    {
+        for(int columnIndex=0; columnIndex<n; columnIndex++)
+        {
+           cout<<matrixs[lineIndex+1][columnIndex+1]<<" ";
+        }
+        cout<<endl;
+    }
+    for(int lineIndex=0; lineIndex<m; lineIndex++)
+    {
+        for(int columnIndex=0; columnIndex<n; columnIndex++)
+        {
+            // add $2, n => sub $2, n
+           if(a[lineIndex+1][columnIndex+1]==1)// jmp celula_vie
+           {
+                if(matrixs[lineIndex+1][columnIndex+1]<2 || matrixs[lineIndex+1][columnIndex+1]>3)// jmp elem_modif_in_0
+                {
+                    a[lineIndex+1][columnIndex+1] = 0;
+                }
+           } else // jmp celula_moarta
+           {
+                if(matrixs[lineIndex+1][columnIndex+1]==3)// jmp elem_modif_in_1
+                {
+                    a[lineIndex+1][columnIndex+1] = 1;
+                }
+           }
+        }
+    }
+    cout<<endl;
+    for(int lineIndex=0; lineIndex<m; lineIndex++)
+    {
+        for(int columnIndex=0; columnIndex<n; columnIndex++)
+        {
+           cout<<a[lineIndex+1][columnIndex+1]<<" ";
+        }
+        cout<<endl;
+    }*/
+    cout<<endl<<endl<<endl;
+    for(int kIndex=0; kIndex<k; kIndex++)
+    {
+        // compunere_matrice_s
+        for(int lineIndex=0; lineIndex<m; lineIndex++)
+        {
+            for(int columnIndex=0; columnIndex<n; columnIndex++)
+            {
+                s = 0;
+                //s = a[i-1][j-1] + a[i-1][j] + a[i-1][j+1] + a[i][j-1] + a[i][j+1]+ a[i+1][j-1] + a[i+1][j] + a[i+1][j+1]
+                s = a[lineIndex][columnIndex] +
+                a[lineIndex][columnIndex+1] +
+                a[lineIndex][columnIndex+2] +
+                a[lineIndex+1][columnIndex] +
+                a[lineIndex+1][columnIndex+2]+
+                a[lineIndex+2][columnIndex] +
+                a[lineIndex+2][columnIndex+1] +
+                a[lineIndex+2][columnIndex+2];
+                matrixs[lineIndex+1][columnIndex+1] = s;
+            }
+        }
+        // afis_matrice_s
+        for(int lineIndex=0; lineIndex<m; lineIndex++)
+        {
+            for(int columnIndex=0; columnIndex<n; columnIndex++)
+            {
+               cout<<matrixs[lineIndex+1][columnIndex+1]<<" ";
+            }
+            cout<<endl;
+        }
+        cout<<endl;
+        // analiza_evolutie
+        for(int lineIndex=0; lineIndex<m; lineIndex++)
+        {
+            for(int columnIndex=0; columnIndex<n; columnIndex++)
+            {
+                // add $2, n => sub $2, n
+               if(a[lineIndex+1][columnIndex+1]==1)// jmp celula_vie
+               {
+                    if(matrixs[lineIndex+1][columnIndex+1]<2 || matrixs[lineIndex+1][columnIndex+1]>3)// jmp elem_modif_in_0
+                    {
+                        a[lineIndex+1][columnIndex+1] = 0;
+                    }
+               } else // jmp celula_moarta
+               {
+                    if(matrixs[lineIndex+1][columnIndex+1]==3)// jmp elem_modif_in_1
+                    {
+                        a[lineIndex+1][columnIndex+1] = 1;
+                    }
+               }
+            }
+        }
+        // afis_analiza_evolutie
+        for(int lineIndex=0; lineIndex<m; lineIndex++)
+        {
+            for(int columnIndex=0; columnIndex<n; columnIndex++)
+            {
+               cout<<a[lineIndex+1][columnIndex+1]<<" ";
+            }
+            cout<<endl;
+        }
+        cout<<endl;
+    }
+    return 0;
+}
+
