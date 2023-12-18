@@ -1,5 +1,5 @@
 .data
-    bin: .space 4
+    bin: .space 9
     MIndex: .space 4
     bitIndex: .space 4
     messageLenght: .space 4
@@ -8,7 +8,7 @@
     formatScanf: .asciz "%ld"
     formatPrintf: .asciz "mesaj: %s\n"
     formatStrlen: .asciz "lungime: %ld\n"
-    formatBinary: .asciz "%ld "
+    formatBinary: .asciz "%s "
 .text
 strlen:
     movl $0, %ecx 
@@ -60,18 +60,19 @@ strlen_mesaj:
 init:
     movl %ecx, messageLenght ;# strlen(message)
     
-    lea bin, %esi ;# sirul bin (binary) e relativ la %esi
-    
     movl $0, MIndex
 for_caracter_mesaj: ;# for(MIndex=0; MIndex<strlen(message); MIndex++)
     movl MIndex, %ecx
     cmp %ecx, messageLenght
     je et_exit
     
-    movzbl (%edi, %ecx), %ebx ;# caracterul curent se va afla in %ebx, iar in %ecx e counter-ul MIndex; mov zero extend byte to zero
+    lea message, %edi
+    ;# fiecare caracter e indicat prin pozitia (%edi + %ecx)
+    movzbl (%edi, %ecx), %ebx ;# valoarea ASCII a caracterului curent se va afla in %ebx, iar in %ecx e counter-ul MIndex; move zero-extended byte to zero va completa cu zero-uri pana la 32 de biti
     
     movl $7, bitIndex
-    for_ascii_in_binar:;# for(bitIndex=7; bitIndex>=0; bitIndex--)
+    for_ascii_in_binar:;# for(bitIndex=7; bitIndex>=0; bitIndex--) parcurgere inversa pt a evita o inversare de care ar fi fost nevoie ulterior
+        lea bin, %esi
         movl bitIndex, %ecx
         cmpl $0, %ecx
         je cont_for_caracter_mesaj
@@ -80,10 +81,10 @@ for_caracter_mesaj: ;# for(MIndex=0; MIndex<strlen(message); MIndex++)
         ;# eax = (caracter_mesaj & 0x1) + '0'
         movl %ebx, %eax
         andl $1, %eax ;# pt LSB
-        addl $'0', %eax
+        addl $'0', %eax ;# convertire in '0' sau '1' (dpdv ASCII)
         movb %al, (%esi, %ecx) ;# bin e relativ la %esi
-        shrl %ebx ;# urmatorul bit din caracter
         
+        shrl %ebx ;# urmatorul bit din caracter
         decl bitIndex
         jmp for_ascii_in_binar
         
