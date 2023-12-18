@@ -1,6 +1,6 @@
 .data
     bin: .space 9
-    MIndex: .space 4
+    mIndex: .space 4
     bitIndex: .space 4
     messageLenght: .space 4
     message: .asciz "parola"
@@ -57,12 +57,9 @@ strlen_mesaj:
     call fflush
     addl $4, %esp
     
-init:
-    movl %ecx, messageLenght ;# strlen(message)
-    
-    movl $0, MIndex
+    movl $0, mIndex
 for_caracter_mesaj: ;# for(MIndex=0; MIndex<strlen(message); MIndex++)
-    movl MIndex, %ecx
+    movl mIndex, %ecx
     cmp %ecx, messageLenght
     je et_exit
     
@@ -100,7 +97,7 @@ cont_for_caracter_mesaj:
     call fflush
     add $4, %esp
 
-    incl MIndex
+    incl mIndex
     jmp for_caracter_mesaj
     
 et_exit:
