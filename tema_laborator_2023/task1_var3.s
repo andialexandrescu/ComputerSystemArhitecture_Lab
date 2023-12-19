@@ -96,8 +96,8 @@ cont_for_caracter_mesaj:
     incl mIndex
     jmp for_caracter_mesaj
     
-    movl $1, %eax
-    movl $4, %ebx
+    movl $4, %eax
+    movl $1, %ebx
     movl $newLine, %ecx
     movl $2, %edx
     int $0x80
@@ -127,14 +127,13 @@ afis_vector_v_nr:
     jmp afis_vector_v_nr
 
 
-    lea v, %esi
     movl $0, vIndex
 for_vIndex:
     movl vIndex, %ecx
     cmp %ecx, messageLenght
     je et_exit
     
-        lea bin, %edi
+        lea v, %esi
         movl (%esi, %ecx, 4), %eax ;# fiecare element din vectorul v reprezinta elementul curent ce trebuie transformat in reprezentarea lui binara
         
         movl $7, %ecx
@@ -146,20 +145,21 @@ for_vIndex:
             movl $0, %edx
             divl %ebx ;# mereu va fi impartit (edx, eax) la 2, de aceea edx trebuie reinitializat la fiecare pas
             
+            lea bin, %edi
             ;# in edx se afla restul, iar in eax catul impartirii la ebx (= 2)
             movl %edx, (%edi, %ecx, 4) ;# deoarece counter-ul e parcurs descrescator, adica restul impartirii lui eax la 2 va fi concatenat de la stanga la dreapta (daca counter-ul era parcurs in mod obisnuit, ar fi fost nevoie de o inversiune ulterior a sirului generat)
             
             subl $1, %ecx
             jmp numar_in_binar
             
-        init_afis_numar_in_binar: 
-            lea bin, %edi
+        init_afis_numar_in_binar:
             movl $0, binIndex
         afis_numar_in_binar:
             movl binIndex, %ecx
             cmp $8, %ecx
             je cont_for_vIndex
             
+            lea bin, %edi
             movl (%edi, %ecx, 4), %eax
             
             pusha
@@ -176,8 +176,10 @@ for_vIndex:
             incl binIndex
             jmp afis_numar_in_binar
 cont_for_vIndex:
-    movl $1, %eax
-    movl $4, %ebx
+    movl $0, bin ;# reinitializare
+    
+    movl $4, %eax
+    movl $1, %ebx
     movl $newSpace, %ecx
     movl $2, %edx
     int $0x80
