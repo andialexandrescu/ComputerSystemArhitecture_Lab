@@ -1,0 +1,17 @@
+;# e cunoscut faptul ca un fisier e o secventa de caractere stocate, motiv pt care fiecare fisier e asociat unui stream (input stream sau output stream)
+    ;# tipul de stream al fiecarui fisier e declarat cu ajutorul unui file pointer FILE *infile;
+
+    ;# fopen(filename, access_type) citeste ("r") / scrie ("w") un fisier pentru input/ output
+;#FILE *fp; declararea unui file pointer
+;#fp = fopen(filename, access_type); deschiderea unui fisier
+;#... //accesarea unui fisier
+;#fclose(fp); inchiderea unui fisier
+    ;# fopen() va asocia un fisier existent fizic cu un stream
+    ;# file descriptor = identificator, adica reprez o valoare distincta prin care este identificat un fisier
+    ;# verificare deschidere corecta a fisierului (daca era incorect in eax s-ar fi aflat valoarea 0, completata de fopen) cmp $0, %eax je et_exit
+
+    ;# o data ce un fisier e deschis pentru citire/ scriere, variabilele din el vor putea sa fie citite (folosind fscanf()), iar alte variabile rezultate vor putea sa fie scrise (folosind fprintf())
+;#fprintf(outputFileDescriptor, "The answer is %d\n", x);
+;#fscanf(inputFileDescriptor, "%s %d/%d/%d %lf", name, &bMonth, &bDay, &bYear, &gpa);
+    ;# fscanf() va citi un sir formatat dintr-un fisier
+    ;# fprintf() va scrie un sir formatat intr-un fisier (diferenta fata de printf e ca are ca prim parametru acel file descriptor al fisierului in care se lucreaza)

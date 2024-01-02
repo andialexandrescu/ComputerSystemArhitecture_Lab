@@ -1,0 +1,228 @@
+Acest program in C++ cuprinde numai partea de codificare din cerinta 0x01, nu am reusit sa fac decodificarea, motiv pentru care fisierul task1_var3.s nu contine codul acesta cu exactitate. 
+Am inceput sa scriu subpunctul b) in assembly, pana cand a trebuit sa ma gandesc la un mod de a implementa o posibila concatenare a val de 0 si 1 cate 8, reprezentand un element dintr-un vector, abordare total gresita, fapt realizat ulterior. 
+Se pot face operatii direct pe numere intregi, cum ar fi xor-area, scrierea in binar fiind inutila, deoarece ne foloseste doar pentru a verifica cu usurinta daca xor-area intregilor de pe pozitii corespunzatoare a avut loc corect (altfel am fi ales sa calculam efectiv aceste rezultate).
+
+Algoritmul in C++ pentru codificare:
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+int bin_v[100], bin_nr[100];
+
+int strlen(char* str)
+{
+    int count = 0;
+    while (*str != '\0')
+    {
+        count++;
+        str++;
+    }
+    return count;
+}
+
+int vector_in_binar(int v[100], int vLength)
+{
+/** afisare valori a in binar - pas optional (nespecificat in cerinta)**/
+    // for_vIndex:
+    for(int vIndex=0; vIndex<vLength; vIndex++)
+    {
+        int num = v[vIndex];
+        bin_v[vIndex] = 0;
+        // numar_in_binar:
+        for(int i = 7; i >= 0; i--)
+        {
+            bin_nr[i] = num % 2;
+            num /= 2;
+        }
+
+        //changed part (nu e in fisierul numar_in_binar.s)
+        for(int bin_nrIndex=0; bin_nrIndex<8; bin_nrIndex++)
+        {
+            bin_v[vIndex] = bin_v[vIndex] * 10 + bin_nr[bin_nrIndex];
+        }
+
+        /** fara complicatii de genul restului impartirii la 2 -
+        trebuie rescrisa eticheta numar_in_binar
+        (ma folosesc de faptul ca orice numar e retinut binar
+        in memorie si doar shiftez unde e nevoie)
+        movl v(%edi, %ecx, 4), %eax ;# incarcare nr curent in eax
+        ...
+        andl $1, %eax ;# bits masking, inafara de LSB
+        addl %eax, bin_v(%esi, %ecx, 1) ;# adaugarea bit-ului in bin_v
+        shl $1, bin_v(%esi, %ecx, 1) # shift la dreapta pentru a crea spatiu pentru urmatorul bit
+        ...
+        shrl $1, %eax # shift la dreapta pt a prelucra urmatorul bit - echivalent cu inmultirea cu 2 **/
+
+        // afis_numar_in_binar:
+        //for (int bin_nrIndex=0; bin_nrIndex<8; bin_nrIndex++)
+        //{
+            //cout<<bin_nr[bin_nrIndex];
+        //}
+        //cout<<" ";
+    }
+
+    //changed part (nu e in fisierul numar_in_binar.s)
+    for(int bin_vIndex=0; bin_vIndex<vLength; bin_vIndex++)
+    {
+        cout<<bin_v[bin_vIndex]<<" ";
+    }
+    cout<<endl;
+}
+
+int main()
+{
+    int vIndex; // vIndex va fi folosit universal pt orice array de lungime messageLength (asa am stabilit eu pt a evita sa ma incurc cu multi indecsi)
+    char message[100];
+    int messageLength, maxMessageLength, bin_ch[100];
+    int matrix[6]={0,1,1,1,1}, matrixLength, matrixIndex, key[100], keyIndex, bin_key[100]; // matrix[31]={0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int bin_rez[100], bin;
+    char hexa_rez[100];
+
+    cin.get(message, 100);
+    messageLength = strlen(message);
+    maxMessageLength = messageLength * 8;
+    matrixLength = 5; // (n + 2) * (m + 2) de la subpunctul a), totusi gandit pentru o k-evolutie (m nr de linii, n nr de coloane - matrix neextinsa)
+    for(int keyIndex=0; keyIndex<matrixLength; keyIndex++)
+    {
+        key[keyIndex] = matrix[keyIndex];
+    }
+    if(maxMessageLength == matrixLength)
+    {
+        // xor-are propriu-zisa -> jmp et_xor
+    } else if(maxMessageLength < matrixLength)
+    {
+        // xor-are prioritara mesajului (multiplu de 8 cu siguranta) -> jmp et_xor
+    } else if(maxMessageLength > matrixLength)
+    {
+        matrixIndex = 0;
+        for(int keyIndex=matrixLength; keyIndex<maxMessageLength; keyIndex++)
+        {
+            if(matrixIndex >= matrixLength)
+            {
+                matrixIndex = 0;
+            }
+            key[keyIndex] = matrix[matrixIndex];
+            matrixIndex += 1;
+        }
+        //xor-are propriu-zisa -> jmp et_xor
+    }
+    // verif_key
+    for(int keyIndex=0; keyIndex<maxMessageLength; keyIndex++)
+    {
+        cout<<key[keyIndex]<<" ";
+    }
+    cout<<endl;
+
+/** prelucrare MESSAGE **/
+
+    // for_caracter_mesaj
+    for(int messageIndex=0; messageIndex<messageLength; messageIndex++)
+    {
+        // compunere_vector_v_nr
+        bin_ch[messageIndex] = message[messageIndex];
+    }
+    // afis_vector_v_nr:
+    cout<<endl<<"Codurile ASCII pt fiecare caracter din message:"<<endl;
+    for (int vIndex=0; vIndex<messageLength; vIndex++)
+    {
+        cout<<bin_ch[vIndex]<<" ";
+    }
+    cout<<endl;
+    vector_in_binar(bin_ch, messageLength);
+
+/** prelucrare MATRIX **/
+
+    int i = 0;
+    for (int keyIndex=0; keyIndex<messageLength; keyIndex++)
+    {
+        bin = 0;
+        for (int j=7; j>=0; j--)
+        {
+            if(i<maxMessageLength)
+            {
+                bin = (bin << 1) | key[i];
+                i++;
+            }
+        }
+        bin_key[keyIndex] = bin;
+    }
+    cout<<endl<<"Fiecare grupare de 8 elemente consecutive din matricea matrix (intelesa unidimensional, dupa o k-evolutie):"<<endl;
+    for(int vIndex=0; vIndex<messageLength; vIndex++)
+    {
+        cout<<bin_key[vIndex]<<" ";
+    }
+    cout<<endl;
+    vector_in_binar(bin_key, messageLength);
+
+/** xor-are propriu_zisa **/
+
+    // et_xor
+    // compunere_bin_rez
+    for(int bin_rezIndex=0; bin_rezIndex<messageLength; bin_rezIndex++)
+    {
+        // xor-are intre bin_ch si bin_key
+        bin_rez[bin_rezIndex] = bin_key[bin_rezIndex] ^ bin_ch[bin_rezIndex];
+    }
+    cout<<endl<<"Rezultatul XOR-arii binare a mesajului si cheii de criptare:"<<endl;
+    for(int vIndex=0; vIndex<messageLength; vIndex++)
+    {
+        cout<<bin_rez[vIndex]<<" ";
+    }
+    cout<<endl;
+    vector_in_binar(bin_rez, messageLength);
+
+/** criptare in hexa **/
+
+
+    int criptIndex = 2; i=0; int p=0; int hex_num[20]; char cript[100]="0x";// la pozitia p te opresti din afisat
+    for(int vIndex=0; vIndex<messageLength; vIndex++)
+    {
+        int dec_num = bin_rez[vIndex];
+        //printf("Hexadecimal Value of %d is ", dec_num);
+        while(dec_num!=0)
+        {
+            hex_num[i] = dec_num % 16;
+            dec_num = dec_num / 16;
+            i++;
+        }
+        // compunere cript[]
+        for (int j=i-1; j>=p; j--)
+        {
+            if (hex_num[j] < 10)
+            {
+                cript[criptIndex] = '0' + hex_num[j];// print 0-9
+            } else
+            {
+                cript[criptIndex] = 'A' + hex_num[j] - 10;// print A-F
+            }
+            criptIndex++;
+        }
+        p=i;
+
+        // doar afisare, fara compunere
+        /*if(p==0)
+        {
+            cout<<"0x";
+        }
+        for (j=i-1; j>=p; j--)
+        {
+            if (hex_num[j] < 10)
+            {
+                printf("%d", hex_num[j]);// print 0-9
+            } else
+            {
+                printf("%c", hex_num[j] + 55);// print A-F
+            }
+        }
+        p=i;*/
+    }
+    cout<<endl<<"Concatenarea criptarii hexa a rezultatului XOR-arii este:"<<endl<<cript;
+
+    //for (int bin_nrIndex=0; bin_nrIndex<8; bin_nrIndex++)
+        //{
+            //cout<<bin_nr[bin_nrIndex];
+        //}
+        //cout<<" ";
+    return 0;
+}

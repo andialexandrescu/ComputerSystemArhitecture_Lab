@@ -1,19 +1,21 @@
-Pasii urmati pt subpunctul a) de la tema de laborator (terminat in 2 zile de lucru, cu mai multe sau mai putine ore in care am lucrat - pt ca am scris in paralel in codeblocks in C++ programul pt a intelege cum se indexeaza si ce trebuie facut):
-1. de inteles cum functioneaza matricele in assembly + exercitiul de la finalul suportului de laborator 0x01
-2. m-am luptat cu cititul de la tastatura si am inteles conceptul conform caruia functiile printf si scanf modifica registri intr-un mod neinteles omului de rand, therefore pt siguranta: fie dau pushl reg, popl reg (acelasi registru - in order for it to be able to restore its initial value), fie pusha, popa si am incheiat discutia
-3. milestone: am citit m, n, p, perechile (i,j) si k de tastatura si am afisat matricea matrix exact cum e ea salvata in memorie incepand cu adresa lui %edi
-4. m-am ocupat de a-mi lamuri 2 intrebari referitor la cum se procedeaza: sa bordez matricea initiala matrix cu 4 for-uri (cum se facea la bac s3 ex2) sau sa o am direct bordata, iar cand afisez matricea initiala (pt ca asta se cere), sa afisez pt i<-1,m-1 si j<-1,n-1
-5. varianta a doua e rezonabila asa ca matrix teoretic e bordata de la inceput, numai ca eu atribui valorile de 1 (e muchie intr-un graf orientat) pt un element de forma matrix[i+1][j+1], unde (i,j) pereche
-6. am reusit sa afisez matricea extinsa + cea initiala in aceasta ordine, din moment ce pt cea initiala trebuie sa se revina la valorile initiale ale nr de linii, respectiv coloane (remembering that i've incremented n and m by 2 when dealing with the graph, now i've got to "fuck, go back", pt ca matricea initiala are m_init linii si n_init coloane)
-7. tin minte pentru restul proiectului ca acum m si n au valorile lor initiale, therefore, mereu cand afisez fac succesiv operatiile de add $2, n / sub $2, n pt accesa ca o pers normala elementele din matricea extinsa matrix (pana in ac punct ea mereu a fost extinsa si va ramane extinsa)
-8. ma ocup de realizat eticheta afis_suma_vecini_elem_curent si iese un intreg plan de bataie in care apelez corect vecinii bazat pe lineIndex si columnIndex din matricea extinsa matrix, tot ce a trebuit sa retin e ca i = lineIndex + 1, iar j = columnIndex + 1 (deci i - 1 = lineIndex, i + 1 = lineIndex + 2, similar pt j)
-9. upgrade de la eticheta afis_suma_vecini_elem_curent la compunere_matrice_s si afis_matrice_s, pt ca dorim ulterior sa putem apela suma vecinilor corespunzatoare elementului curent din matricea neextinsa
-10. prima_evolutie implica definirea conceptelor de baza din conway's game of life - cand modifici elementul curent din 0 si 1 si invers + corespondenta matrix si matrixs (realizez ca pt a apela din ambele matrice, folosesc acelasi eax = (lineIndex+1)*(n_init+2)+(columnIndex+1), fapt convenient, insa nu stiu sigur daca matrixs ar fi si ea supradimensionata, adica extinsa in mod implicit, oricum e declarata tot de un space 1600 si nu ar trebui sa fie o problema)
-11. multe corectari de jmp la etichete
-12. afis_k_evolutii va afisa fiecare evolutie de la pasul curent pana cand indexul kIndex==k, deci a trebuit sa modific niste ciclari (compunere_matrice_s -> afis_matrice_s -> analiza_evolutie -> afis_analiza_evolutie -> !!!!cont_afis_k_evolutii!!!!)
-13. ma bucur de viata si decid ca vreau sa o complic cu niste prompt-uri obraznice de genul asta: "Iteratia <kIndex>" etc.
+Pasii urmati pt subpunctul a) de la tema de laborator (am scris in paralel in codeblocks in C++ programul pt a intelege cum se indexeaza si ce trebuie facut):
+1. intelegertea functionarii matricelor in assembly + exercitiul de la finalul suportului de laborator 0x01
+2. gestionarea citirii de la tastatura; am inteles conceptul conform caruia functiile printf si scanf modifica registrii intr-un mod neinteles; solutia implica utilizarea unei perechi de instructiuni: fie pushl reg, urmata de popl reg (acelasi registru pt a-si recapata valoarea initiala); fie pusha, urmata de popa 
+3. citire de la tastatura a valorilor de input: m, n, p, perechile (i,j) si k; afisare matrice matrix exact cum e salvata in memorie, incepand cu adresa lui %edi
+4. intrebari legate de bordarea matricei initiale matrix: bordare cu 4 for-uri (cum se facea la bac s3 ex2) sau sa o aleg direct bordata, iar cand afisez matricea initiala (cerinta), sa afisez pt i de la 1 la m-1 si j de la 1 la n-1
+5. varianta aleasa este bordarea directa, astfel incat valorile de 1 sa fie atribuite pentru elementele de forma matrix[i+1][j+1], unde (i,j) reprezinta o pereche; asadar, matrix e bordata de la inceput, numai ca sunt atribuite valori de 1 (muchie intr-un graf orientat) unui element de forma matrix[i+1][j+1], in loc de matrix[i][j], asa cum ar fi trebuit pentru prima varianta de rezolvare
+6. implementarea afisarii matricei extinse si a celei inițiale in aceasta ordine, deoarece matricea initiala trebuie sa revina la valorile initiale ale numarului de linii si coloane (este necesara decrementarea lui n si m cu 2, matricea initiala avand m_init linii si n_init coloane)
+7. de retinut ca acum m si n au valorile lor initiale, asadar, mereu cand afisez, fac succesiv operatiile de add $2,n / sub $2,n pt accesarea elementelor din matricea extinsa matrix
+8. realizarea etichetei afis_suma_vecini_elem_curent pentru a calcula suma vecinilor curenti; accesarea vecinilor se realizeaza raportat la lineIndex si columnIndex din matricea extinsa matrix, iar i = lineIndex + 1, j = columnIndex + 1, de unde rezulta ca i - 1 = lineIndex, i + 1 = lineIndex + 2 (similar pt j)
+9. upgrade de la eticheta afis_suma_vecini_elem_curent la compunere_matrice_s si afis_matrice_s, pt a permite ulterior apelarea sumei vecinilor corespunzatori elementului curent din matricea neextinsa
+10. prima_evolutie implica definirea conceptelor de baza din conway's game of life - modificarea elementului curent din 0 si 1 si invers, precum si corespondenta dintre matrix si matrixs (pt a apela din ambele matrice, folosesc acelasi eax = (lineIndex+1)*(n_init+2)+(columnIndex+1))
+11. corectari multiple la instruct de jmp la etichete
+12. implementarea afis_k_evolutii pt a afisa fiecare evolutie de la pasul curent pana cand indexul k specificat, atunci cand kIndex==k; modificarea unor ciclari (compunere_matrice_s -> afis_matrice_s -> analiza_evolutie -> afis_analiza_evolutie -> cont_afis_k_evolutii)
+13. adaugarea de prompt-uri, precum "Iteratia <kIndex>" etc.
 
-THE C++ CODE SNIPPET THAT GOT ME THROUGH ALL HARDSHIPS #selfmade:
+Fisierul prima_evolutie_task0.s cuprinde toti pasii mentionati.
+
+Algoritmul implementat in C++:
 #include <iostream>
 
 using namespace std;

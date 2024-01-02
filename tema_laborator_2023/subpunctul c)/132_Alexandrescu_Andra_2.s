@@ -1,42 +1,82 @@
 .data
-    m: .space 4 ;# 1<=m<=18 linii
-    n: .space 4 ;# 1<=n<=18 coloane
-    p: .space 4 ;# p<=m*n deoarece exista cazul in care matricea are toate celulele vii, deci nr total de perechi e nrlinii*nrcoloane
+    m: .space 4 ;# nr linii
+    n: .space 4 ;# nr coloane
+    p: .space 4 ;# nr celule vii
     pIndex: .space 4
-    matrix: .space 1600 ;# (18+2) * (18+2) * 4
-    lineIndex: .space 4
-    columnIndex: .space 4
-    i: .space 4
-    j: .space 4 ;# matrix[i][j], respectiv matrixs[i][j]
-    k: .space 4 ;# k<=15
+    k: .space 4 ;# k nr evolutii
     kIndex: .space 4
+    i: .space 4
+    j: .space 4
+    matrix: .space 1600
     s: .space 4 ;# folosit pentru suma vecinilor
     matrixs: .space 1600
+    lineIndex: .space 4
+    columnIndex: .space 4
+    
+    inputFileDescriptor: .space 4
+    outputFileDescriptor: .space 4
 
-    formatScanf: .asciz "%ld"
-    formatPrintf: .asciz "%ld "
+    readAccessMode: .asciz "r"
+    writeAccessMode: .asciz "w"
+    inputFileName: .asciz "in.txt"
+    outputFileName: .asciz "out.txt"
+    formatFPrintf: .asciz "%ld "
+    formatFScanf: .asciz "%ld"
     newLine: .asciz "\n"
+    formatNewline: .asciz "%s"
 .text
 .global main
 main:
-    ;# citire m linii
-    pushl $m
-    pushl $formatScanf
-    call scanf
-    add $8, %esp
+;# ALGORITM
+;# FILE* inputFileDescriptor = fopen("in.txt", "r")
+;# FILE* outputFileDescriptor = fopen("out.txt", "w")
 
+;# fscanf(inputFileDescriptor, "%ld", &variabila_input)
+
+;# fprintf(outputFileDescriptor, "%ld ", variabila_output); fprintf(outputFileDescriptor, "%s", &variabila_output)
+
+;# fclose(inputFileDescriptor)
+;# fclose(outputFileDescriptor)
+
+    ;# fisierul de intrare e citit folosind modul de accesare read, din moment ce toate datele necesare vor fi preluate de acolo
+    ;# eax = fopen(nume_fisier, mod_accesare)
+    pushl $readAccessMode
+    pushl $inputFileName
+    call fopen
+    addl $8, %esp
+
+    movl %eax, inputFileDescriptor ;# salvare valoare returnata fopen in file descriptor-ul fisierului curent
+    
+    ;# se procedeaza similar pentru fisierul de iesire
+    pushl $writeAccessMode
+    pushl $outputFileName
+    call fopen
+    addl $8, %esp
+
+    movl %eax, outputFileDescriptor
+    
+    ;# citire m linii din fisierul de input
+    ;# fscanf(descriptor_fisier, &formatFScanf, &var_1, ...)
+    pushl $m
+    pushl $formatFScanf
+    pushl inputFileDescriptor
+    call fscanf
+    addl $12, %esp
+    
     ;# citire n coloane
     pushl $n
-    pushl $formatScanf
-    call scanf
-    add $8, %esp
-
+    pushl $formatFScanf
+    pushl inputFileDescriptor
+    call fscanf
+    addl $12, %esp
+    
     ;# citire p - nr celule vii
     pushl $p
-    pushl $formatScanf
-    call scanf
-    add $8, %esp
-
+    pushl $formatFScanf
+    pushl inputFileDescriptor
+    call fscanf
+    addl $12, %esp
+    
     movl $0, pIndex
     addl $2, m
     addl $2, n
@@ -47,14 +87,16 @@ for_perechi: ;# for(pIndex=0; pIndex<p; pIndex++)
 
     ;# citire pozitiile din matrice la care se afla celulele vii
     pushl $i
-    pushl $formatScanf
-    call scanf
-    add $8, %esp
+    pushl $formatFScanf
+    pushl inputFileDescriptor
+    call fscanf
+    add $12, %esp
 
     pushl $j
-    pushl $formatScanf
-    call scanf
-    add $8, %esp
+    pushl $formatFScanf
+    pushl inputFileDescriptor
+    call fscanf
+    add $12, %esp
 
     ;# for(i=0; i<m_init+2; i++){ for(j=0; j<n_init+2; j++) ... }
     ;# matrix[i+1][j+1] = 1 (celula vie); eax = (i+1) * (n_init+2) + (j+1); GRAF ORIENTAT
@@ -72,15 +114,15 @@ for_perechi: ;# for(pIndex=0; pIndex<p; pIndex++)
 citire_k:
     ;# citire k - nr evolutii
     pushl $k
-    pushl $formatScanf
-    call scanf
-    add $8, %esp
-
+    pushl $formatFScanf
+    pushl inputFileDescriptor
+    call fscanf
+    add $12, %esp
+    
     ;# doar in eticheta for_perechi, care parcurge matricea extinsa si atribuie val de 1 perechilor de noduri (i, j), este nevoie de m_init+2 si n_init+2, deci se revine la valorile initiale introduse [ocazional vor trebui sa se realizeze operatiile addl $2, n si subl $2, n, din moment ce matricele matrix si matrixs au elemente care se apeleaza dupa formula (lineIndex+1)*(n_init+2)+(columnIndex)]
     subl $2, m 
     subl $2, n
-    
-    movl $0, kIndex
+movl $0, kIndex
 afis_k_evolutie: ;# for(kIndex=0; kIndex<k; kIndex++)
     movl kIndex, %ecx
     cmp %ecx, k
@@ -205,7 +247,7 @@ compunere_matrice_s:
             
             incl columnIndex
             subl $2, n
-            jmp for1coloane
+            jmp for1_coloane
 
     cont_for1_linii:
         incl lineIndex
@@ -289,17 +331,11 @@ elem_modif_in_1:
     jmp cont_celula_moarta
     
 afis_analiza_evolutie:
-    movl $4, %eax
-    movl $1, %ebx
-    movl $newLine, %ecx
-    movl $2, %edx
-    int $0x80
-        
     movl $0, lineIndex
     for3_linii: ;# for(lineIndex=0; lineIndex<m_init; lineIndex++)
         movl lineIndex, %ecx
         cmp %ecx, m
-        je et_exit
+        je inchidere_fisiere
 
         movl $0, columnIndex
         for3_coloane: ;# for(columnIndex=0; columnIndex<n_init; columnIndex++)
@@ -320,31 +356,49 @@ afis_analiza_evolutie:
             lea matrix, %edi
             movl (%edi, %eax, 4), %ebx
 
+            ;# fprintf(descriptor_fisier, &formatFPrintf, var_1, ...)
             pusha
             pushl %ebx
-            pushl $formatPrintf
-            call printf
-            add $8, %esp
+            pushl $formatFPrintf
+            pushl outputFileDescriptor
+            call fprintf
+            add $12, %esp
             popa
-
+            
             pushl $0
             call fflush
-            popl %ebx
+            addl $4, %esp
             
             incl columnIndex
             jmp for3_coloane
 
     cont_for3_linii:
-        movl $4, %eax
-        movl $1, %ebx
-        movl $newLine, %ecx
-        movl $2, %edx
-        int $0x80
+        pusha
+        pushl $newLine
+        pushl $formatNewline
+        pushl outputFileDescriptor
+        call fprintf
+        add $12, %esp
+        popa
+        
+        pushl $0
+        call fflush
+        addl $4, %esp
 	
         incl lineIndex
         jmp for3_linii
-
+        
+inchidere_fisiere:
+    ;# inchidere fisier de input
+    pushl inputFileDescriptor
+    call fclose
+    addl $4, %esp
+    
+    ;# inchidere fisier de output
+    pushl outputFileDescriptor
+    call fclose
+    addl $4, %esp
 et_exit:
     movl $1, %eax
-    xor %ebx, %ebx
+    xorl %ebx, %ebx
     int $0x80

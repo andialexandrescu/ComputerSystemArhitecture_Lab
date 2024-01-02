@@ -8,8 +8,9 @@
     messageLenght: .space 4
     message: .asciz "parola"
 
-    formatMesajInit: .asciz "%s\n"
+    formatMesajInit: .asciz "mesaj: %s\n"
     formatPrintf: .asciz "%ld "
+    formatPrintf2: .asciz "%ld"
     formatStrlen: .asciz "lungime: %ld\n"
     formatBinary: .asciz "%s"
     newSpace: .asciz " "
@@ -108,7 +109,7 @@ cont_for_caracter_mesaj:
 afis_vector_v_nr:
     movl vIndex, %ecx
     cmp %ecx, messageLenght
-    je for_vIndex
+    je init_for_vIndex
     
     movl (%esi, %ecx, 4), %eax
     
@@ -126,6 +127,12 @@ afis_vector_v_nr:
     incl vIndex
     jmp afis_vector_v_nr
 
+init_for_vIndex:
+    movl $4, %eax
+    movl $1, %ebx
+    movl $newLine, %ecx
+    movl $2, %edx
+    int $0x80
 
     movl $0, vIndex
 for_vIndex:
@@ -164,7 +171,7 @@ for_vIndex:
             
             pusha
             pushl %eax
-            pushl $formatPrintf
+            pushl $formatPrintf2
             call printf
             addl $8, %esp
             popa
@@ -176,8 +183,6 @@ for_vIndex:
             incl binIndex
             jmp afis_numar_in_binar
 cont_for_vIndex:
-    movl $0, bin ;# reinitializare
-    
     movl $4, %eax
     movl $1, %ebx
     movl $newSpace, %ecx
@@ -185,8 +190,8 @@ cont_for_vIndex:
     int $0x80
 
     incl vIndex
-    jmp for_vIndex
-    
+    jmp for_vIndex 
+     
 et_exit:
     movl $1, %eax
     xor %ebx, %ebx
