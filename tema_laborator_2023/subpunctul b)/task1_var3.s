@@ -3,12 +3,12 @@
     bin: .space 32 ;# 8 * 4
     binIndex: .space 4
     mIndex: .space 4
-    v: .space 32
+    v: .space 40
     vIndex: .space 4
     messageLenght: .space 4
-    message: .asciz "parola"
+    message: .space 11
 
-    formatMesajInit: .asciz "mesaj: %s\n"
+    formatMessageInit: .asciz "%s"
     formatPrintf: .asciz "%ld "
     formatPrintf2: .asciz "%ld"
     formatStrlen: .asciz "lungime: %ld\n"
@@ -33,18 +33,10 @@ strlen_exit:
         ret
 .global main
 main:
-afis_mesaj:
-    pusha
-    lea message, %eax
-    push %eax
-    push $formatMesajInit
-    call printf
+    pushl $message
+    pushl $formatMessageInit
+    call scanf
     addl $8, %esp
-    popa
-    
-    pushl $0
-    call fflush
-    addl $4, %esp
     
 strlen_mesaj:
     lea message, %edi ;# message se afla la inceputul adresei %edi/ e relativ la %edi
@@ -75,11 +67,13 @@ for_caracter_mesaj: ;# for(mIndex=0; mIndex<messageLenght; mIndex++)
     je afis_vector_v_nr
     
     ;# fiecare caracter e indicat prin pozitia (%edi + %ecx)
-    movzbl (%edi, %ecx), %ebx ;# valoarea ASCII a caracterului curent se va afla in ebx, iar in ecx e counter-ul MIndex; move zero-extended byte to zero va completa cu zero-uri pana la 32 de biti
+    ;#movzbl (%edi, %ecx), %ebx ;# valoarea ASCII a caracterului curent se va afla in ebx, iar in ecx e counter-ul MIndex; move zero-extended byte to zero va completa cu zero-uri pana la 32 de biti
+    mov (%edi, %ecx), %al
     
         lea v, %esi
     compunere_vector_v_nr:
-        movl %ebx, (%esi, %ecx, 4)
+        ;#movl %ebx, (%esi, %ecx, 4)
+        mov %al, (%esi, %ecx, 4)
         
     ;#afis_secv_caractere:   
         ;#pusha
