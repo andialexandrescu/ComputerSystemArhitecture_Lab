@@ -374,7 +374,9 @@ et_decizie:
     je fara_decriptare
 
 pre_compunere_key:
-    ;# calcul lungime matrix: m_init * n_init
+    addl $2, m
+    addl $2, n
+    ;# calcul lungime matrix: (m_init+2) * (n_init+2)
     movl m, %eax
     movl $0, %edx
     mull n
@@ -385,26 +387,22 @@ compunere_key:
 
     parcurgere_k_evolutie:
         movl $0, lineIndex
-        for3_linii: ;# for(lineIndex=0; lineIndex<m_init; lineIndex++)
+        for3_linii: ;# for(lineIndex=0; lineIndex<m_init+2; lineIndex++)
             movl lineIndex, %ecx
             cmp %ecx, m
             je et_comparare_lungimi
 
             movl $0, columnIndex
-            for3_coloane: ;# for(columnIndex=0; columnIndex<n_init; columnIndex++)
+            for3_coloane: ;# for(columnIndex=0; columnIndex<n_init+2; columnIndex++)
                 movl columnIndex, %ecx
                 cmp %ecx, n
                 je cont_for3_linii
 
-                ;# eax = (lineIndex+1) * (n_init+2) + (columnIndex+1)
+                ;# eax = (lineIndex) * (n_init+2) + (columnIndex)
                 movl lineIndex, %eax
-                addl $1, %eax
                 movl $0, %edx
-                addl $2, n
                 mull n
-                subl $2, n
                 addl columnIndex, %eax
-                addl $1, %eax
 
                 lea matrix, %edi
                 movl (%edi, %eax, 4), %ebx
@@ -415,10 +413,27 @@ compunere_key:
                 movl %ebx, (%esi, %eax, 4)
                 ;# nu e nevoie de restaurare a lui eax (pushl + popl)
 
+                pusha
+                pushl %ebx
+                pushl $formatPrintf
+                call printf
+                add $8, %esp
+                popa
+
+                pushl $0
+                call fflush
+                popl %ebx
+
                 incl keyIndex
                 incl columnIndex
                 jmp for3_coloane
         cont_for3_linii:
+            movl $4, %eax
+            movl $1, %ebx
+            movl $newLine, %ecx
+            movl $2, %edx
+            int $0x80
+
             incl lineIndex
             jmp for3_linii
 et_comparare_lungimi:
